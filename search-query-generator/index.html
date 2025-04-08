@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Search Query Generator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container">
+    <h2>Google Search Query Generator</h2>
+
+    <label>Paste Keywords (one per line or comma-separated):</label>
+    <textarea id="keywordInput" placeholder="keyword1, keyword2..." oninput="generateSimilarKeywords()"></textarea>
+
+    <div class="options">
+      <button class="primary-btn" onclick="parseKeywords()">Parse Keywords</button>
+    </div>
+
+    <label>Add Optional Keywords (used in search):</label>
+    <input type="text" id="optionalInput" placeholder="optional1, optional2..." oninput="updateSearchLink()">
+
+    <h3>Similar Keywords</h3>
+    <ul id="generatedKeywords"></ul>
+
+    <h3>Saved Keywords</h3>
+    <div id="keywordsList" class="keywords-list"></div>
+
+    <h3>Generate Keywords from Text</h3>
+    <textarea id="multiText" placeholder="Paste multiple keywords (separate by spaces or lines)" oninput="generateKeywordsFromText()"></textarea>
+
+    <div class="results-section">
+      <strong>Live Google Search URL:</strong>
+      <div><a id="searchLink" class="search-link" href="#" target="_blank">Search will appear here...</a></div>
+    </div>
+
+    <div class="options">
+      <button class="primary-btn" onclick="exportToCSV()">Export to CSV</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

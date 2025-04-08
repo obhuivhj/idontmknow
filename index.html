@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Search Query Generator</title>
+  <style>
+    /* Root variables for consistency */
+    :root {
+      --primary-color: #4285F4; /* Google blue */
+      --secondary-color: #34A853; /* Google green */
+      --background-color: #fff;
+      --text-color: #333;
+      --font-size: 16px;
+      --border-radius: 8px;
+      --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --padding: 16px;
+      --margin: 20px;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background-color: #fff;
+      width: 100%;
+      max-width: 800px;
+      padding: var(--padding);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      text-align: center;
+    }
+
+    h2 {
+      color: var(--primary-color);
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 10px;
+      display: block;
+      text-align: left;
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: 1px solid #ddd;
+      margin-bottom: 15px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      height: 100px;
+      resize: none;
+    }
+
+    .options button {
+      background-color: var(--primary-color);
+      color: #fff;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 200px;
+      margin-bottom: 20px;
+    }
+
+    .options button:hover {
+      background-color: #357ae8;
+    }
+
+    .results-section {
+      margin-top: 30px;
+      text-align: left;
+    }
+
+    .results-section strong {
+      font-size: 18px;
+      display: block;
+      margin-bottom: 15px;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      background-color: #f0f0f0;
+      margin: 5px 0;
+      padding: 8px 16px;
+      border-radius: var(--border-radius);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    button.save-btn,
+    button.remove-btn {
+      background-color: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    button.save-btn:hover,
+    button.remove-btn:hover {
+      background-color: #2e8e41;
+    }
+
+    .remove-btn {
+      background-color: #ff4757;
+    }
+
+    .remove-btn:hover {
+      background-color: #e74c3c;
+    }
+
+    .search-link {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-size: 16px;
+    }
+
+    .search-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      textarea,
+      input[type="text"] {
+        font-size: 14px;
+      }
+
+      .options button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Google Search Query Generator</h2>
+
+    <label>Paste Keywords (one per line or comma-separated):</label>
+    <textarea id="keywordInput" placeholder="keyword1, keyword2..." oninput="generateSimilarKeywords()"></textarea>
+
+    <div class="options">
+      <button class="primary-btn" onclick="parseKeywords()">Parse Keywords</button>
+    </div>
+
+    <label>Add Optional Keywords (used in search):</label>
+    <input type="text" id="optionalInput" placeholder="optional1, optional2..." oninput="updateSearchLink()">
+
+    <h3>Similar Keywords</h3>
+    <ul id="generatedKeywords"></ul>
+
+    <h3>Saved Keywords</h3>
+    <div id="keywordsList" class="keywords-list"></div>
+
+    <h3>Generate Keywords from Text</h3>
+    <textarea id="multiText" placeholder="Paste multiple keywords (separate by spaces or lines)" oninput="generateKeywordsFromText()"></textarea>
+
+    <div class="results-section">
+      <strong>Live Google Search URL:</strong>
+      <div><a id="searchLink" class="search-link" href="#" target="_blank">Search will appear here...</a></div>
+    </div>
+  </div>
+
+  <script>
+    const trendingKeywords = [
+      "AI technology", "machine learning", "big data", "quantum computing", "cloud services",
+      "web development", "SEO tips", "cryptocurrency news", "social media trends", "blockchain technology",
+      "mobile development", "e-commerce", "remote work", "cybersecurity", "sustainable living"
+    ];
+
+    const relatedKeywordsList = {
+      "python": ["python coding", "python tutorial", "python programming", "learn python", "python scripts"],
+      "javascript": ["js programming", "learn javascript", "javascript tutorial", "javascript code", "js developer"],
+      "web development": ["web design", "html css", "frontend development", "backend development", "full stack developer"],
+      "programming": ["coding", "software development", "developer", "programming languages", "algorithm design"],
+    };
+
+    let keywords = [];
+
+    // Load keywords from localStorage
+    window.onload = () => {
+      const savedKeywords = localStorage.getItem('savedKeywords');
+      if (savedKeywords) {
+        keywords = JSON.parse(savedKeywords);
+        renderKeywords();
+      }
+    };
+
+    function generateSimilarKeywords() {
+      const inputKeyword = document.getElementById('keywordInput').value.trim().toLowerCase();
+      
+      if (!inputKeyword) {
+        document.getElementById('generatedKeywords').innerHTML = "<li>Please enter a keyword.</li>";
+        return;
+      }
+
+      let suggestions = [];
+
+      if (relatedKeywordsList[inputKeyword]) {
+        suggestions = [...relatedKeywordsList[inputKeyword]];
+      }
+
+      const diversitySuggestions = trendingKeywords.filter(keyword => keyword.includes(inputKeyword));
+      suggestions = [...new Set([...suggestions, ...diversitySuggestions])];
+
+      if (suggestions.length === 0) {
+        document.getElementById('generatedKeywords').innerHTML = "<li>No suggestions found.</li>";
+        return;
+      }
+
+      const generatedList = suggestions.map((kw) => `
+        <li>
+          ${kw}
+          <button class="save-btn" onclick="saveKeyword('${kw}')">Save</button>
+        </li>
+      `).join('');
+
+      document.getElementById('generatedKeywords').innerHTML = generatedList;
+    }
+
+    function saveKeyword(keyword) {
+      if (!keywords.includes(keyword)) {
+        keywords.push(keyword);
+        renderKeywords();
+        // Save keywords to localStorage
+        localStorage.setItem('savedKeywords', JSON.stringify(keywords));
+      }
+    }
+
+    function renderKeywords() {
+      const keywordsList = document.getElementById('keywordsList');
+      keywordsList.innerHTML = keywords.map(keyword => `
+        <div class="keyword-item">
+          <span>${keyword}</span>
+          <button class="remove-btn" onclick="removeKeyword('${keyword}')">✖</button>
+        </div>
+      `).join('');
+      updateSearchLink();
+    }
+
+    function removeKeyword(keyword) {
+      keywords = keywords.filter(k => k !== keyword);
+      renderKeywords();
+      // Save updated keywords to localStorage
+      localStorage.setItem('savedKeywords', JSON.stringify(keywords));
+    }
+
+    function updateSearchLink() {
+      const activeKeywords = keywords.map(k => `"${k}"`);
+      const optional = document.getElementById('optionalInput').value.trim();
+      const query = [...activeKeywords, optional].filter(Boolean).join(' ');
+      const url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+      document.getElementById('searchLink').href = url;
+      document.getElementById('searchLink').textContent = url;
+    }
+
+    function parseKeywords() {
+      const raw = document.getElementById('keywordInput').value.split(/[\n,]+/).map(k => k.trim()).filter(k => k !== '');
+      keywords = raw;
+      renderKeywords();
+      updateSearchLink();
+      // Save parsed keywords to localStorage
+      localStorage.setItem('savedKeywords', JSON.stringify(keywords));
+    }
+
+    function generateKeywordsFromText() {
+      const inputText = document.getElementById('multiText').value.trim();
+      const words = inputText.split(/\s+/).map(word => word.trim()).filter(word => word !== '');
+      const uniqueWords = [...new Set(words)];
+      document.getElementById('generatedKeywords').innerHTML = uniqueWords.map(word => `
+        <li>${word} <button class="save-btn" onclick="saveKeyword('${word}')">Save</button></li>
+      `).join('');
+    }
+  </script>
+
+</body>
+</html>
